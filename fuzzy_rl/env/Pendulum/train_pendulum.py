@@ -1,4 +1,7 @@
-import fuzzy_rl.rl_algs.ddpg.ddpg as rl_alg
+import sys
+sys.path.append("")
+
+import rl_algs.ddpg.ddpg as rl_alg
 import Pendulum
 import numpy as np
 import time

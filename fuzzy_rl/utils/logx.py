@@ -8,7 +8,7 @@ Logs to a tab-separated-values file (path/to/output_directory/progress.txt)
 import json
 import numpy as np
 import os.path as osp, time, atexit, os
-from fuzzy_rl.utils.serialization_utils import ExtraTypesEncoder
+from utils.serialization_utils import ExtraTypesEncoder
 
 color2num = dict(
     gray=30,

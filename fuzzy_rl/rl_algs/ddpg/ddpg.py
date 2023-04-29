@@ -6,7 +6,7 @@ import pickle
 import gymnasium as gym
 import time
 from . import core
-from fuzzy_rl.utils.logx import EpochLogger
+from utils.logx import EpochLogger
 
 @tf.function
 def geo(l,axis=0):

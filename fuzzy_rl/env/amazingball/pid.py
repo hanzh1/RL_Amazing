@@ -1,10 +1,16 @@
+import sys
+sys.path.append("")
+
 from dataclasses import dataclass
 import pybullet as p
 import time
 import numpy as np
-import utils
+import amazing_utils as utils
 import argparse
+import assets as assets
 
+global x_position
+global y_position
 
 @dataclass
 class Point:
@@ -21,7 +27,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--setpoint", type=float, nargs=2, default=(0.0,0.0))
     parser.add_argument("--kp", type=float, default=1.0)
-    parser.add_argument("--kd", type=float, default=50.0)
+    parser.add_argument("--kd", type=float, default=500.0)
     parser.add_argument("--noise", action="store_true", help="Add noise to the measurements")
     parser.add_argument("--filtered", action="store_true", help="filter the measurements")
     cmd_args = parser.parse_args()
@@ -57,7 +63,11 @@ def run_controller(kp, kd, setpoint, noise, filtered, world: World):
         2. Calculate the forces to be applied to the plate
         3. Apply the forces to the plate
         '''
+        global x_position 
+        global y_position
         (x,y,z), orientation = p.getBasePositionAndOrientation(world.sphere)
+        x_position = x
+        y_position = y
         if noise:
             x += utils.noise(t)
             y += utils.noise(t, seed = 43) # so that the noise on y is different than the one on x
@@ -73,11 +83,12 @@ def run_controller(kp, kd, setpoint, noise, filtered, world: World):
 
     utils.loop_every(0.01, every_10ms)
 
-def run_simulation( initial_ball_position = Point(np.random.uniform(-0.2, 0.2),
-                                                  np.random.uniform(-0.2, 0.2))):
+init_position = Point(np.random.uniform(-0.2, 0.2),np.random.uniform(-0.2, 0.2))
+
+def run_simulation( initial_ball_position = init_position):
     p.connect(p.GUI)
     p.setAdditionalSearchPath("assets")
-    plate = p.loadURDF("plate.urdf")
+    plate = p.loadURDF("C:\\Users\\Han\\Desktop\\CS\\454\\FuzzyActorCritic\\fuzzy_rl\env\\amazingball\\assets\\plate.urdf")
 
     #zoom to the plate
     p.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=0, cameraPitch=-45, cameraTargetPosition=[0,0,0])
@@ -95,6 +106,20 @@ def run_simulation( initial_ball_position = Point(np.random.uniform(-0.2, 0.2),
     p.setRealTimeSimulation(1)
     return World(plate=plate, sphere=sphere)
 
+def observe():
+    return x_position,y_position
+
+def action(angle_x, angle_y):
+    def set_plate_angles(theta_x, theta_y):
+        p.setJointMotorControl2(world.plate, 1, p.POSITION_CONTROL, targetPosition=np.clip(theta_x, -0.1, 0.1), force=5, maxVelocity=2)
+        p.setJointMotorControl2(world.plate, 0, p.POSITION_CONTROL, targetPosition=np.clip(-theta_y, -0.1, 0.1), force=5, maxVelocity=2)
+    set_plate_angles(angle_x, angle_y)
+
+def reward():
+    x,y = observe()
+    if x < -0.4 or x > 0.4 or y < -0.25 or y > 0.25:
+        return float('-inf')
+    return -1 * (x ** 2 + y** 2)
 
 if __name__ == "__main__":
     cmd_args = parse_args()
