@@ -95,7 +95,6 @@ def run_simulation( human, initial_ball_position = init_position):
         p.connect(p.DIRECT)
     p.setAdditionalSearchPath("assets")
     plate = p.loadURDF("C:\\Users\\Han\\Desktop\\CS\\454\\FuzzyActorCritic\\fuzzy_rl\env\\amazingball\\assets\\plate.urdf")
-
     #zoom to the plate
     p.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=0, cameraPitch=-45, cameraTargetPosition=[0,0,0])
 
@@ -138,6 +137,6 @@ def reward():
 
 if __name__ == "__main__":
     cmd_args = parse_args()
-    world = run_simulation()
+    world = run_simulation(True)
     run_controller(**vars(cmd_args), world=world)
     time.sleep(10000)
