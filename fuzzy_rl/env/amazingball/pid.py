@@ -9,8 +9,6 @@ import amazing_utils as utils
 import argparse
 import assets as assets
 
-global x_position
-global y_position
 
 @dataclass
 class Point:
@@ -34,6 +32,12 @@ def parse_args():
     print(cmd_args)
     cmd_args.setpoint = Point(*cmd_args.setpoint)
     return cmd_args
+
+global x_position
+global y_position
+init_position = Point(np.random.uniform(-0.2, 0.2),np.random.uniform(-0.2, 0.2))
+x_position = init_position.x
+y_position = init_position.y
 
 class PD:
     def __init__(self, kp, kd):
@@ -83,10 +87,12 @@ def run_controller(kp, kd, setpoint, noise, filtered, world: World):
 
     utils.loop_every(0.01, every_10ms)
 
-init_position = Point(np.random.uniform(-0.2, 0.2),np.random.uniform(-0.2, 0.2))
 
-def run_simulation( initial_ball_position = init_position):
-    p.connect(p.GUI)
+def run_simulation( human, initial_ball_position = init_position):
+    if human:
+        p.connect(p.GUI)
+    else:
+        p.connect(p.DIRECT)
     p.setAdditionalSearchPath("assets")
     plate = p.loadURDF("C:\\Users\\Han\\Desktop\\CS\\454\\FuzzyActorCritic\\fuzzy_rl\env\\amazingball\\assets\\plate.urdf")
 
@@ -107,16 +113,25 @@ def run_simulation( initial_ball_position = init_position):
     return World(plate=plate, sphere=sphere)
 
 def observe():
-    return x_position,y_position
+    global x_position
+    global y_position
+    
+    # if not x_position or not y_position:
+    #     #observe for first time
+    #     x_position = init_position.x
+    #     y_position = init_position.y
+    return np.array([x_position,y_position] , dtype=np.float32)
 
-def action(angle_x, angle_y):
+def action(angle_x, angle_y, world):
     def set_plate_angles(theta_x, theta_y):
         p.setJointMotorControl2(world.plate, 1, p.POSITION_CONTROL, targetPosition=np.clip(theta_x, -0.1, 0.1), force=5, maxVelocity=2)
         p.setJointMotorControl2(world.plate, 0, p.POSITION_CONTROL, targetPosition=np.clip(-theta_y, -0.1, 0.1), force=5, maxVelocity=2)
     set_plate_angles(angle_x, angle_y)
 
 def reward():
-    x,y = observe()
+    ob = observe()
+    x = ob[0]
+    y = ob[1]
     if x < -0.4 or x > 0.4 or y < -0.25 or y > 0.25:
         return float('-inf')
     return -1 * (x ** 2 + y** 2)
