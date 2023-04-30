@@ -31,9 +31,6 @@ class AmazingEnv(gym.Env):
         "render_fps": 30,
     }
 
-    def init_state():
-        pass
-
     def __init__(self, render_mode: Optional[str] = None, g=10):
         #initialze env
         self.g = g
@@ -95,18 +92,18 @@ class AmazingEnv(gym.Env):
 
         # return obs, reward, False, False, {}
     
-    def render(self):
-        # if self.world is None:
-        #     raise Exception("Cannot render: environment has not been initialized.")
-        # view_matrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0, 0, 0], distance=1.5, yaw=0, pitch=-45, roll=0, upAxisIndex=2)
-        # proj_matrix = p.computeProjectionMatrixFOV(fov=60, aspect=1, nearVal=0.1, farVal=100.0)
-        # img_arr = p.getCameraImage(300, 300, viewMatrix=view_matrix, projectionMatrix=proj_matrix)
-        # rgb = img_arr[2]
-        # p.connect(p.GUI)
-        # return rgb
-        p.connect(p.GUI)
-        #zoom to the plate
-        p.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=0, cameraPitch=-45, cameraTargetPosition=[0,0,0])
+    # def render(self):
+    #     # if self.world is None:
+    #     #     raise Exception("Cannot render: environment has not been initialized.")
+    #     # view_matrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0, 0, 0], distance=1.5, yaw=0, pitch=-45, roll=0, upAxisIndex=2)
+    #     # proj_matrix = p.computeProjectionMatrixFOV(fov=60, aspect=1, nearVal=0.1, farVal=100.0)
+    #     # img_arr = p.getCameraImage(300, 300, viewMatrix=view_matrix, projectionMatrix=proj_matrix)
+    #     # rgb = img_arr[2]
+    #     # p.connect(p.GUI)
+    #     # return rgb
+    #     p.connect(p.GUI)
+    #     #zoom to the plate
+    #     p.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=0, cameraPitch=-45, cameraTargetPosition=[0,0,0])
 
     
 
