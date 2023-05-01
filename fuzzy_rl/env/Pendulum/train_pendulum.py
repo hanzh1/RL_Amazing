@@ -15,7 +15,7 @@ def on_save(actor, q_network, epoch, replay_buffer):
 def existing_actor_critic(*args, **kwargs):
     return tf.keras.models.load_model("pendulum/actor"), tf.keras.models.load_model("pendulum/critic")
 
-rl_alg.ddpg(lambda: Pendulum.PendulumEnv(g=10.0)
+rl_alg.ddpg(lambda: Pendulum.PendulumEnv(g=-10.0)
     , hp = rl_alg.HyperParams(
         seed=int(time.time()* 1e5) % int(1e6),
         steps_per_epoch=1000,

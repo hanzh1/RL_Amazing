@@ -31,7 +31,7 @@ class AmazingEnv(gym.Env):
         "render_fps": 30,
     }
 
-    def __init__(self, render_mode: Optional[str] = None, g=10):
+    def __init__(self, g):
         #initialze env
         self.g = g
         self.max_angle = np.pi / 6
@@ -47,8 +47,8 @@ class AmazingEnv(gym.Env):
             p.disconnect()
 
         # p.resetSimulation()???????????????????????????????????????????
-
         p.connect(p.DIRECT)
+        p.setGravity(0.0, 0.0, -9.8)
         #zoom to the plate
         p.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=0, cameraPitch=-45, cameraTargetPosition=[0,0,0])
         #creating world
@@ -72,14 +72,17 @@ class AmazingEnv(gym.Env):
 
     def step(self, action):
         theta_x, theta_y = action
+        theta_x = np.clip(theta_x, -self.max_angle, self.max_angle)
+        theta_y = np.clip(theta_y, -self.max_angle, self.max_angle)
+        
         p.setJointMotorControl2(self.world.plate, 1, p.POSITION_CONTROL, targetPosition=np.clip(theta_x, -0.1, 0.1), force=5, maxVelocity=2) #MBW!
         p.setJointMotorControl2(self.world.plate, 0, p.POSITION_CONTROL, targetPosition=np.clip(-theta_y, -0.1, 0.1), force=5, maxVelocity=2)#MBW!
         # Step the simulation
         p.stepSimulation()
         # Update the observation
         self.observation = self._get_observation()
-        # Calculate the reward
-        reward = self._get_reward()
+        # Calculate the normalized reward
+        reward = self._get_reward() / (0.5 ** 2 + 0.3 ** 2)
         # Check if the episode is done
         done = self._is_done()
         # Return the observation, reward, and done flag
@@ -116,7 +119,7 @@ class AmazingEnv(gym.Env):
         x = ob[0]
         y = ob[1]
         if x < -0.4 or x > 0.4 or y < -0.25 or y > 0.25:
-            return float('-inf')
+            return -100000
         return -1 * (x ** 2 + y** 2)
     
     def _is_done(self):
@@ -126,6 +129,12 @@ class AmazingEnv(gym.Env):
         # If the has fallen off the plate, the episode is done
         if x < -0.4 or x > 0.4 or y < -0.25 or y > 0.25:
             return True
+        
+        #if already stablizied!
+
+        # e = 0.01
+        # if np.abs(x - 0) < e and np.abs(x - 0) < e:
+        #     return True
         return False
 
         # if True:
