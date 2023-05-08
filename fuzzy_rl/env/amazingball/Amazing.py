@@ -45,10 +45,15 @@ class AmazingEnv(gym.Env):
             low=np.array([-0.5, -0.3,-1,-1]),
             high=np.array([0.5, 0.3, 1, 1]),
             dtype=np.float32) #dimension of the board
+        self.init_position = Point(np.random.uniform(-0.2, 0.2),np.random.uniform(-0.2, 0.2))
         
-        self.sphere = None
-        self.plate = None
-        self.world = None
+        self.sphere = p.createMultiBody(0.2
+        , p.createCollisionShape(p.GEOM_SPHERE, radius=0.04)
+        , basePosition = [self.init_position.x, self.init_position.x,0.5])
+
+        self.plate = p.loadURDF("/Users/zhuh2/Desktop/CS/RL_Amazing/fuzzy_rl/env/amazingball/assets/plate.urdf")
+
+        self.world = World(plate=self.plate, sphere=self.sphere)
         
         
     def reset(self):
@@ -57,21 +62,31 @@ class AmazingEnv(gym.Env):
 
         # p.resetSimulation()???????????????????????????????????????????
         # p.connect(p.DIRECT)
-        
+
         p.setGravity(0.0, 0.0, -9.8)
         #zoom to the plate
         p.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=0, cameraPitch=-45, cameraTargetPosition=[0,0,0])
         p.setRealTimeSimulation(0)
         #creating world
-        self.plate = p.loadURDF("/Users/zhuh2/Desktop/CS/RL_Amazing/fuzzy_rl/env/amazingball/assets/plate.urdf")
-        self.init_position = Point(np.random.uniform(-0.2, 0.2),np.random.uniform(-0.2, 0.2))
-        self.sphere = p.createMultiBody(0.2
-        , p.createCollisionShape(p.GEOM_SPHERE, radius=0.04)
-        , basePosition = [self.init_position.x, self.init_position.x,0.5])
-        self.world = World(plate=self.plate, sphere=self.sphere)
-        
-        p.setJointMotorControl2(self.world.plate, 0, p.POSITION_CONTROL, targetPosition=0, force=5, maxVelocity=2)
-        p.setJointMotorControl2(self.world.plate, 1, p.POSITION_CONTROL, targetPosition=0, force=5, maxVelocity=2)
+    
+        self.init_position = [np.random.uniform(-0.2, 0.2),np.random.uniform(-0.2, 0.2,), 0.1]
+
+        #reset ball position
+        p.resetBasePositionAndOrientation(self.world.sphere, self.init_position, [0, 0, 0, 1])
+        #reset velocity!!!!!!!!!!!
+        p.resetBaseVelocity(self.world.sphere, [0,0,0], [0,0,0])
+        #reset plate
+        p.resetBasePositionAndOrientation(self.world.plate, [0,0,0], [0, 0, 0, 1])
+        #reset plate velocity
+        p.resetBaseVelocity(self.world.plate, [0,0,0], [0,0,0])
+
+        p.setJointMotorControl2(self.world.plate, 0, p.POSITION_CONTROL, targetPosition=0, force=100, maxVelocity=100)
+        p.setJointMotorControl2(self.world.plate, 1, p.POSITION_CONTROL, targetPosition=0, force=100, maxVelocity=100)
+
+        p.setTimeStep(0.005)
+
+        for _ in range(10):
+            p.stepSimulation()
 
         p.setTimeStep(0.02)
 
@@ -135,7 +150,7 @@ class AmazingEnv(gym.Env):
         y = ob[1]
         # if x < -0.4 or x > 0.4 or y < -0.25 or y > 0.25: #fell off
         #     return -100000
-        r = np.clip(1.0 - ( np.sqrt((x ** 2 + y** 2)/ (0.5 ** 2 + 0.3 ** 2))), 0, 1)
+        r = np.clip(1.0 - ( np.sqrt((x ** 2 + y** 2)/ (0.4 ** 2 + 0.25 ** 2))), 0, 1)
         #print(r)
         return r
     

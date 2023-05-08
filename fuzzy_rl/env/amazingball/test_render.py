@@ -36,6 +36,7 @@ while (True):
     for _ in range(500):
         p.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=0, cameraPitch=-45, cameraTargetPosition=[0,0,0])
         a = actor(o)*(high - low)/2.0 + (high + low)/2.0
+        #a =  0.1 *(high - low)/2.0 + (high + low)/2.0
         o, r, d, t, i, = env.step(a)
         print(r)
         if d:
