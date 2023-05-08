@@ -31,35 +31,49 @@ class AmazingEnv(gym.Env):
         "render_fps": 30,
     }
 
-    def __init__(self, g):
+    def __init__(self, g, human=False):
         #initialze env
+        if human:
+            p.connect(p.GUI)
+        else:
+            p.connect(p.DIRECT)
         self.g = g
-        self.max_angle = np.pi / 6
+        self.max_angle = 0.1
         self.action_space = spaces.Box(low=-self.max_angle, high=self.max_angle, shape=(2,), dtype=np.float32)
         high = np.array([0.5, 0.3], dtype=np.float32) #dimesion of plate: 0.4, 0.25
-        self.observation_space = spaces.Box(low=-high, high=high,dtype=np.float32) #dimension of the board
+        self.observation_space = spaces.Box(            
+            low=np.array([-0.5, -0.3,-1,-1]),
+            high=np.array([0.5, 0.3, 1, 1]),
+            dtype=np.float32) #dimension of the board
+        
         self.sphere = None
         self.plate = None
         self.world = None
         
+        
     def reset(self):
-        if self.sphere is not None or self.plate is not None or self.world is not None:
-            p.disconnect()
+        # if self.sphere is not None or self.plate is not None or self.world is not None:
+        #     p.disconnect()
 
         # p.resetSimulation()???????????????????????????????????????????
-        p.connect(p.DIRECT)
+        # p.connect(p.DIRECT)
+        
         p.setGravity(0.0, 0.0, -9.8)
         #zoom to the plate
         p.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=0, cameraPitch=-45, cameraTargetPosition=[0,0,0])
+        p.setRealTimeSimulation(0)
         #creating world
-        self.plate = p.loadURDF("C:\\Users\\Han\\Desktop\\CS\\454\\FuzzyActorCritic\\fuzzy_rl\env\\amazingball\\assets\\plate.urdf")
+        self.plate = p.loadURDF("/Users/zhuh2/Desktop/CS/RL_Amazing/fuzzy_rl/env/amazingball/assets/plate.urdf")
         self.init_position = Point(np.random.uniform(-0.2, 0.2),np.random.uniform(-0.2, 0.2))
         self.sphere = p.createMultiBody(0.2
         , p.createCollisionShape(p.GEOM_SPHERE, radius=0.04)
         , basePosition = [self.init_position.x, self.init_position.x,0.5])
         self.world = World(plate=self.plate, sphere=self.sphere)
-        p.setTimeStep(0.01)
-        p.setRealTimeSimulation(0)
+        
+        p.setJointMotorControl2(self.world.plate, 0, p.POSITION_CONTROL, targetPosition=0, force=5, maxVelocity=2)
+        p.setJointMotorControl2(self.world.plate, 1, p.POSITION_CONTROL, targetPosition=0, force=5, maxVelocity=2)
+
+        p.setTimeStep(0.02)
 
         return self._get_observation(), {}
 
@@ -72,17 +86,15 @@ class AmazingEnv(gym.Env):
 
     def step(self, action):
         theta_x, theta_y = action
-        theta_x = np.clip(theta_x, -self.max_angle, self.max_angle)
-        theta_y = np.clip(theta_y, -self.max_angle, self.max_angle)
-        
-        p.setJointMotorControl2(self.world.plate, 1, p.POSITION_CONTROL, targetPosition=np.clip(theta_x, -0.1, 0.1), force=5, maxVelocity=2) #MBW!
-        p.setJointMotorControl2(self.world.plate, 0, p.POSITION_CONTROL, targetPosition=np.clip(-theta_y, -0.1, 0.1), force=5, maxVelocity=2)#MBW!
+        #print(theta_x, theta_y)
+        p.setJointMotorControl2(self.world.plate, 1, p.POSITION_CONTROL, targetPosition=np.clip(theta_x, -0.1, 0.1), force=7, maxVelocity=4) #MBW!
+        p.setJointMotorControl2(self.world.plate, 0, p.POSITION_CONTROL, targetPosition=np.clip(-theta_y, -0.1, 0.1), force=7, maxVelocity=4)#MBW!
         # Step the simulation
         p.stepSimulation()
         # Update the observation
         self.observation = self._get_observation()
         # Calculate the normalized reward
-        reward = self._get_reward() / (0.5 ** 2 + 0.3 ** 2)
+        reward = self._get_reward() 
         # Check if the episode is done
         done = self._is_done()
         # Return the observation, reward, and done flag
@@ -112,15 +124,20 @@ class AmazingEnv(gym.Env):
 
     def _get_observation(self):
         (x,y,z), orientation = p.getBasePositionAndOrientation(self.world.sphere)
-        return np.array([x,y] , dtype=np.float32)
+        velocity = p.getBaseVelocity(self.sphere)[0][0:2]
+        #print(velocity[0], " ", velocity[1])
+        #return np.array([x,y,velocity[0], velocity[1]] , dtype=np.float32)
+        return np.array([x,y,velocity[0],velocity[1]] , dtype=np.float32)
     
     def _get_reward(self):
         ob = self._get_observation()
         x = ob[0]
         y = ob[1]
-        if x < -0.4 or x > 0.4 or y < -0.25 or y > 0.25:
-            return -100000
-        return -1 * (x ** 2 + y** 2)
+        # if x < -0.4 or x > 0.4 or y < -0.25 or y > 0.25: #fell off
+        #     return -100000
+        r = np.clip(1.0 - ( np.sqrt((x ** 2 + y** 2)/ (0.5 ** 2 + 0.3 ** 2))), 0, 1)
+        #print(r)
+        return r
     
     def _is_done(self):
         ob = self._get_observation()

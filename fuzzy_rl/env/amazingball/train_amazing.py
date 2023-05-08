@@ -22,9 +22,9 @@ rl_alg.ddpg(lambda: Amazing.AmazingEnv(g=-9.8)
         ac_kwargs={
             "actor_hidden_sizes":(32,32),
             "critic_hidden_sizes":(256,256),
-            "obs_normalizer": np.array([0.5, 0.25])
+            "obs_normalizer": np.array([0.5, 0.25, 1, 1]) #MBW
         },
-        pi_bar_variance=[0.0,0.0],
+        pi_bar_variance=[0.0, 0.0, 0.0, 0.0],
         start_steps=1000,
         replay_size=int(1e5),
         gamma=0.9,
@@ -33,8 +33,8 @@ rl_alg.ddpg(lambda: Amazing.AmazingEnv(g=-9.8)
         q_lr=1e-3,
         batch_size=200,
         act_noise=0.1,
-        max_ep_len=200,
-        epochs=10,
+        max_ep_len=500,
+        epochs=50,
         train_every=50,
         train_steps=30,
     )

@@ -55,6 +55,7 @@ def run_controller(kp, kd, setpoint, noise, filtered, world: World):
     x_filter = utils.Butterworth_filter(butterworth_order=5, cutoff_freq=20)
     y_filter = utils.Butterworth_filter(butterworth_order=5, cutoff_freq=20)
     def set_plate_angles(theta_x, theta_y):
+    
         p.setJointMotorControl2(world.plate, 1, p.POSITION_CONTROL, targetPosition=np.clip(theta_x, -0.1, 0.1), force=5, maxVelocity=2)
         p.setJointMotorControl2(world.plate, 0, p.POSITION_CONTROL, targetPosition=np.clip(-theta_y, -0.1, 0.1), force=5, maxVelocity=2)
 
@@ -94,7 +95,7 @@ def run_simulation( human, initial_ball_position = init_position):
     else:
         p.connect(p.DIRECT)
     p.setAdditionalSearchPath("assets")
-    plate = p.loadURDF("C:\\Users\\Han\\Desktop\\CS\\454\\FuzzyActorCritic\\fuzzy_rl\env\\amazingball\\assets\\plate.urdf")
+    plate = p.loadURDF("/Users/zhuh2/Desktop/CS/RL_Amazing/fuzzy_rl/env/amazingball/assets/plate.urdf")
     #zoom to the plate
     p.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=0, cameraPitch=-45, cameraTargetPosition=[0,0,0])
 
