@@ -42,5 +42,5 @@ while (True):
         if d:
             break
         os.append(o)
-        time.sleep(0.01)
+        time.sleep(0.0001)
     env.reset()

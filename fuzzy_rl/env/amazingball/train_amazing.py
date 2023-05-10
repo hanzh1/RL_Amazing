@@ -32,9 +32,9 @@ rl_alg.ddpg(lambda: Amazing.AmazingEnv(g=-9.8)
         pi_lr=1e-3,
         q_lr=1e-3,
         batch_size=200,
-        act_noise=0.1,
+        act_noise=0.01,
         max_ep_len=200,
-        epochs=50,
+        epochs=200,
         train_every=50,
         train_steps=30,
     )

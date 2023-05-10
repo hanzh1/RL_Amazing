@@ -150,7 +150,7 @@ class AmazingEnv(gym.Env):
         y = ob[1]
         # if x < -0.4 or x > 0.4 or y < -0.25 or y > 0.25: #fell off
         #     return -100000
-        r = np.clip(1.0 - ( np.sqrt((x ** 2 + y** 2)/ (0.4 ** 2 + 0.25 ** 2))), 0, 1)
+        r = np.clip(1.0 - ( ((x ** 2 + y ** 2)/ (0.4 ** 2 + 0.25 ** 2))**2 ), 0, 1)
         #print(r)
         return r
     
