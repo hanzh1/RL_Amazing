@@ -51,7 +51,7 @@ class AmazingEnv(gym.Env):
         , p.createCollisionShape(p.GEOM_SPHERE, radius=0.04)
         , basePosition = [self.init_position.x, self.init_position.x,0.5])
 
-        self.plate = p.loadURDF("/Users/zhuh2/Desktop/CS/RL_Amazing/fuzzy_rl/env/amazingball/assets/plate.urdf")
+        self.plate = p.loadURDF("./env/amazingball/assets/plate.urdf")
 
         self.world = World(plate=self.plate, sphere=self.sphere)
         
